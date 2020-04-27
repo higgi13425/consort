@@ -13,7 +13,7 @@ library(tidyverse)
 ## Why bother?
 To begin, CONSORT diagrams are a common figure in the reporting of clinical trials. They are frequently used, but often require resorting to drawing flow diagrams in PowerPoint or Adobe Illustrator, removing the user from the R universe.<br>
 <br>
-There are a few solutions available on the web, but they either use diagrammeR, which is an elegant package designed to be adaptable to networks and it reformats the diagram with each addition or removal of a node or edge. This makes it less useful for a static flow diagram. Also, honestly, diagrammeR code is not very literate programming. It is quite difficult to interpret what is going on in the code for complex flowcharts with multiple nodes and edges.
+There are a few solutions available on the web, but they either use diagrammeR, which is an elegant package designed to be adaptable to networks, which reformats the diagram with each addition or removal of a node or edge. This makes it less useful for a static flow diagram. Also, honestly, diagrammeR code is not very literate programming. It is quite difficult to interpret what is going on in the code for complex flowcharts with multiple nodes and edges.
 <br>
 
 A second possibility is using the grid package, opening viewports, and essentially hacking a flowchart by hand. This provides a lot of options and customizability, and there are a few examples that are quite effective, but hacky-looking and far from elegant.<br>
@@ -23,7 +23,7 @@ One of the great appeals of ggplot2 is that it is literate programming, which is
 
 
 ## Our goal
-Out end goal is to reproduce this diagram from the phase 2 study of Upadacitinib in ulcerative colitis. It is a reasonably complex 5 arm dose-ranging study that should illustrate what we can do with ggplot2.
+Out end goal is to reproduce this diagram from the phase 2 study of Upadacitinib in ulcerative colitis. It is a reasonably complex 5 arm dose-ranging study that should illustrate what we can do with ggplot2. The publication can be found [here](https://www.gastrojournal.org/article/S0016-5085(20)30241-9/pdf)
 
 ![Figure from Publication](consort_final.png)
 

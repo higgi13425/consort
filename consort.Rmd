@@ -8,6 +8,52 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(glue)
+library(janitor)
+library(gt)
+library(gtsummary)
+
+# build status table
+status <- tibble(randomized = c(rep("Yes", 250),
+                 rep("No", 196)),
+    excluded_reason = c(rep("None", 250), 
+        rep("Did not meet inclusion criteria", 172), 
+        rep("Withdrew consent", 17),
+        rep("Lost to follow up", 2),
+        rep("Other reasons", 5)),
+    arm = c(rep("Placebo", 46),
+            rep("Upa 7.5 mg QD", 47),
+            rep("Upa 15 mg QD", 49),
+            rep("Upa 30 mg QD", 52),
+            rep("Upa 45 mg QD", 56),
+            rep("None", 196)),
+    completed = c(rep("Adverse Event", 3),
+                  rep("Loss of Effect", 2),
+                  rep("Completed", 41),
+                  rep("Adverse Event", 1),
+                  rep("Loss of Effect", 1),
+                  rep("Completed", 45),
+                  rep("Adverse Event", 2),
+                  rep("Loss of Effect", 1),
+                  rep("Other", 1),
+                  rep("Completed", 45),
+                  rep("Adverse Event", 4),
+                  rep("Loss of Effect", 1),
+                  rep("Other", 1),
+                  rep("Completed", 46),
+                  rep("Adverse Event", 4),
+                  rep("Loss of Effect", 2),
+                  rep("Completed", 50),
+                  rep("None", 196)))
+# now shuffle rows
+set.seed(42)
+rows <- sample(nrow(status))
+status <- status[rows, ] 
+# now add study_id, formatted as "000X"
+study_id <- str_pad(1L:446L, width = 4,
+                  side = "left", pad = "0")
+status <- cbind(study_id, status)
+status
 ```
 
 ## Why bother?
@@ -311,3 +357,217 @@ Let’s take away the axes and gridlines to reveal our creation!
 p + theme_void()
 ```
 
+## Once more, Programmatically
+Let's try this again, but with a programmatic approach.
+
+We will start by taking a look at the status table from this clinical trial. The status table has 5 variables:
+
+- study_id
+- randomized
+- excluded_reason
+- arm
+- completed
+
+Take a look at the status table data for the 446 screeened patients. Then we will look at tabyls for each of the four categorical variables
+```{r status}
+head(status)
+status %>% tabyl(randomized)
+status %>% tabyl(excluded_reason)
+status %>% tabyl(arm)
+status %>% tabyl(completed)
+```
+Now let's see if we can rebuild the consort diagram programmatically. We will build up each piece.
+But we will not use any of the raw numbers.
+Instead, this time we will extract each one from the status table.
+
+```{r axes2}
+data %>% 
+  ggplot(aes(x, y)) +
+  scale_x_continuous(minor_breaks = seq(10, 100, 10)) +
+  scale_y_continuous(minor_breaks = seq(10, 100, 10)) +
+  theme_linedraw() ->
+  p2
+p2
+```
+<br>
+The top box is the number of patients assessed for eligibility. 
+
+```{r assessed}
+top_box <- glue(status %>% tally() %>% pull(), " Patients Assessed for Eligibility")
+
+# Note - ideally we would calculate xmin and xmax based on the length of top_box
+# const = top_box %>% str_length() * 0.38
+# xmin = 50 - const
+# xmax = 50 + const
+
+p2 + geom_rect(xmin = 36, xmax=64, ymin=94, ymax=100, color='black', fill='white', size=0.25, size=0.25) +
+  annotate('text', x= 50, y=97,label= top_box, size=2.5) ->
+  p2
+# note that this actually looks fine when you zoom, not so much in the preview below.
+p2
+```
+### Now let's try to build the patients excluded table
+
+```{r}
+status %>% 
+  filter(randomized == "No") %>% 
+  tabyl(excluded_reason) %>% 
+  adorn_totals("row") %>% 
+  select(n, excluded_reason) %>% 
+  arrange(desc(n)) ->
+exclusion_table
+
+exclusion_table[1,2] <- "Patients excluded"
+
+mutate(exclusion_table,
+  col_new = paste(n, excluded_reason)) %>% 
+  select(col_new) 
+```
+
+### Now let's build the text for the assignment box
+```{r assigned}
+status %>% 
+  filter(randomized == "Yes") %>% 
+  tally() %>% 
+  pull() ->
+num_assigned
+
+assign_box <- glue(num_assigned, " Patients randomly assigned\nand included in the intention-to-treat analysis")
+```
+
+### Now let's build the text for boxes for assignment to each arm
+```{r assignment2, warning=FALSE}
+# note that ordering is tricky, often may want to customize
+# this version arranges by ascending dose
+# considering Placebo as dose = 0
+
+# build a vector of arms, arranged in order
+# might need this later
+status %>% 
+  distinct(arm) %>% 
+  filter(arm != "None") %>% 
+  mutate(num = parse_number(arm)) %>% 
+  replace_na(list(num = 0)) %>% 
+  arrange(num) %>% 
+  pull(arm) ->
+arms_vec
+
+# tally n for assignment boxes by arm, ordered
+status %>% 
+  filter(arm != "None") %>% 
+  count(arm) %>% 
+  mutate(num = parse_number(arm)) %>% # extract dose
+  replace_na(list(num = 0)) %>% # make placebo dose 0
+  arrange(num) %>% #ordering by dose
+  mutate(col_new = paste(n, "Patients assigned\nto ", arm)) %>% 
+  select(col_new) 
+```
+
+
+
+### Now let's try to build the text for boxes for reasons discontinued by arm
+
+```{r}
+status %>% 
+  filter(randomized == "Yes") %>% 
+  filter(completed != "Completed") %>% 
+  select(study_id, arm, completed) %>% 
+  arrange(arm, completed) ->
+discontinued_table
+discontinued_table
+
+# build a function, run across arms with purrr
+# example for one group
+discontinued_table %>% 
+  filter(arm == "Placebo") %>% 
+  tabyl(completed) %>% 
+  adorn_totals("row") %>% 
+  arrange(desc(n)) ->
+discontinued_group
+discontinued_group[1,1] <- "Discontinued"
+
+mutate(discontinued_group, col_new = paste(n, completed))%>%
+  select(col_new) 
+```
+### Now let's build the text for the completion boxes for each arm
+```{r completed2, warning=FALSE}
+# note that ordering is tricky, often may want to customize
+# this version arranges by ascending dose
+# considering Placebo as dose = 0
+
+# build a vector of arms, arranged in order
+# might need this later
+status %>% 
+  distinct(arm) %>% 
+  filter(arm != "None") %>% 
+  mutate(num = parse_number(arm)) %>% 
+  replace_na(list(num = 0)) %>% 
+  arrange(num) %>% 
+  pull(arm) ->
+arms_vec
+
+# tally n for completion boxes by arm, ordered
+status %>% 
+  filter(completed == "Completed") %>% 
+  count(arm) %>% 
+  mutate(num = parse_number(arm)) %>% # extract dose
+  replace_na(list(num = 0)) %>% # make placebo dose 0
+  arrange(num) %>% #ordering by dose
+  mutate(col_new = paste(n, "Patients completed\nthe study")) %>% 
+  select(col_new) %>% 
+  pull()
+```
+### now lets' try to do the top 3rd programmatically
+with 3 chunks of text, 3 boxes, 3 lines.    
+Build the box_lines_top dataframe
+```{r}
+boxes <- c("assessment_box", "exclusion_box", "randomization_box")
+box_num <- c(1:3)
+lines <- c(1:3)
+line_arrow <- c(1,1,0) # whether or not to have arrowhead
+top_tbl <- tibble(boxes, box_num, lines, line_arrow)
+
+# build text for exclusion table
+status %>% 
+  filter(randomized == "No") %>% 
+  tabyl(excluded_reason) %>% 
+  adorn_totals("row") %>% 
+  select(n, excluded_reason) %>% 
+  arrange(desc(n)) ->
+exclusion_table
+
+exclusion_table[1,2] <- "Patients excluded"
+
+mutate(exclusion_table,
+  col_new = paste(n, excluded_reason)) %>% 
+  select(col_new) 
+# measure max_length of string in col_new
+# glue into single string with line breaks
+# put into top_tbl$label[2]
+
+# create labels for boxes 1-3
+top_tbl$label[1] <- glue(status %>% tally() %>% pull(), " Patients Assessed for Eligibility")
+top_tbl$label[2] <- 
+top_tbl$label[3] <- glue(status %>% filter(randomized == "Yes") %>% tally() %>% pull(), " Patients randomly assigned\nand included in the intention-to-treat analysis")
+```
+
+
+
+
+
+## TODO List
+### Build gtsummary with spanner for patients excluded
+### place on plot
+### build randomized box
+### place on plot
+### build assignment text boxes by arm
+### place on plot
+### Build gtsummary with spanner for discontinued by arm
+### place on plot
+### Build boxes for discontinued by arm
+### Place on plot
+### add first 2 arrows
+### add horizontal line and 5 arrows
+### add 5 long arrows
+### add 5 short arrows
+### add theme_void

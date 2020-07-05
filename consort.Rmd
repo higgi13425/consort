@@ -563,7 +563,7 @@ top_tbl$label[2] <- label_ex # created above
 top_tbl$label[3] <- glue(status %>% filter(randomized == "Yes") %>% tally() %>% pull(), " Patients randomly assigned\nand included in the intention-to-treat analysis")
 
 # now calculate true # of lines for all 3
-top_tbl$lines <- str_count(top_tbl$label, "\n") +1
+top_tbl$lines <- count_lines(top_tbl$label)
 
 # now add width in characters to each
 top_tbl$char_wide[1] <- str_split(top_tbl$label[1], "\n") %>% unlist() %>% str_length() %>% max()
@@ -688,8 +688,11 @@ t + theme_void() # show it
 ```
 
 ### build function to convert table to collapsed text with line breaks, removing the last one
+Check
 ### build function to count character width - single or multiline
-### build function to count lines
+Check
+### build function to count lines 
+Check
 
 ### fix line 3 problem in line 636
 

@@ -12,6 +12,7 @@ library(glue)
 library(janitor)
 library(gt)
 library(gtsummary)
+library(ggtext)
 
 # build status table
 status <- tibble(randomized = c(rep("Yes", 250),
@@ -538,22 +539,112 @@ exclusion_table
 
 exclusion_table[1,2] <- "Patients excluded"
 
-mutate(exclusion_table,
-  col_new = paste(n, excluded_reason)) %>% 
+exclusion_table2 <- mutate(exclusion_table,
+  col_new = paste0(n, " ",excluded_reason, "\n")) %>% 
   select(col_new) 
 # measure max_length of string in col_new
+exclusion_table2$char_wide <- max(nchar(exclusion_table2$col_new)) - 2
+# will later put this width into top_tbl row 2
+
 # glue into single string with line breaks
+label_ex <- glue_collapse(exclusion_table2$col_new) %>% #collapses to single string
+  str_trim() #removes the last \n
 # put into top_tbl$label[2]
 
 # create labels for boxes 1-3
 top_tbl$label[1] <- glue(status %>% tally() %>% pull(), " Patients Assessed for Eligibility")
-top_tbl$label[2] <- 
+top_tbl$label[2] <- label_ex # created above
 top_tbl$label[3] <- glue(status %>% filter(randomized == "Yes") %>% tally() %>% pull(), " Patients randomly assigned\nand included in the intention-to-treat analysis")
+
+top_tbl$lines <- str_count(top_tbl$label, "\n") +1
+
+top_tbl$char_wide[1] <- str_split(top_tbl$label[1], "\n") %>% unlist() %>% str_length() %>% max()
+top_tbl$char_wide[2] <- exclusion_table2$char_wide[1]
+top_tbl$char_wide[3] <- str_split(top_tbl$label[3], "\n") %>% unlist() %>% str_length() %>% max()
 ```
 
+### calculate top box width, height, location
+```{r}
+top_tbl <- top_tbl %>% 
+  mutate(box_height = lines *0.56,
+         box_width = char_wide*0.2,
+         x = 50,
+         box_center = c(95,85, 70),
+         y = box_center - box_height)
 
+top_tbl$x[2] <- 86
+```
 
+```{r}
+# try with geom_rect
+h_const = 5 # set adjustment for box height by # of lines
+w_const = 0.33 # set adjustment for box width by # of characters
+top_tbl %>% 
+  mutate(xmin = 50 - char_wide * w_const,
+         xmax = 50 + char_wide * w_const,
+         ymin = 100 - lines * h_const,
+         ymax = 100) ->
+top_tbl2
 
+top_tbl2$xmin[2] <- (85 - top_tbl2$char_wide[2] * w_const)
+top_tbl2$xmax[2] <- (85 + top_tbl2$char_wide[2] * w_const)
+top_tbl2$ymin[2] <- (top_tbl2$ymin[1] - 5 - top_tbl2$lines[2]*h_const)
+top_tbl2$ymax[2] <- (top_tbl2$ymin[1] -5)
+
+top_tbl2$ymin[3] <- (top_tbl2$ymin[2] - 5 - top_tbl2$lines[3]*h_const)
+top_tbl2$ymax[3] <- (top_tbl2$ymin[2] -5)
+
+ggplot(top_tbl2) +
+      geom_rect(aes(xmin=xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+                fill = "white", color = "black") +
+  annotate('text', x= 50, y= top_tbl2$ymax[1]- (top_tbl2$ymax[1]- top_tbl2$ymin[1])/2,
+           label= top_tbl2$label[1], size=2.5) +
+  xlim(0,100) + ylim(0,100)
+```
+
+```{r geom_label attempt at boxes}
+data <- tibble(x= 1:100, y= 1:100)
+data %>% 
+  ggplot(aes(x, y)) +
+  scale_x_continuous(minor_breaks = seq(10, 100, 10)) +
+  scale_y_continuous(minor_breaks = seq(10, 100, 10)) +
+  theme_linedraw() ->
+  p
+# geom label attempt - hard to know where edges are.
+p +
+  geom_label(data = top_tbl,
+            mapping = aes(x= x, y=y, label=label), 
+            label.size=0.25, size = 3, label.r = unit(0.0, "lines")) +
+      xlim(0, 100) + ylim(0, 100) ->
+  q
+
+# generate line 1
+top_tbl$x[1] = 50
+top_tbl$y[1] = 95-2
+top_tbl$xend[1] = 50
+top_tbl$yend[1] = 71.5
+top_tbl$x[2] = 50
+top_tbl$y[2] = 82.2
+top_tbl$xend[2] = 86-top_tbl$box_width/1.7
+top_tbl$yend[2] = 82.2
+top_tbl$x[3] = 50
+top_tbl$y[3] = 66.5
+top_tbl$xend[3] = 50
+top_tbl$yend[3] = 62
+
+q +   geom_segment(data = top_tbl, aes(x=x, y=y, xend=xend, yend=yend),
+               lineend = "round", linejoin = "round",
+               arrow = arrow(length = unit(0.2, "cm"),
+                             ends = "last", type = "closed"), arrow.fill = "black")
+ggplot(top_tbl[3,]) +
+  aes(x, y, label = label) +
+    geom_textbox(hjust = 0.5, vjust = 0.5,
+                 halign = 0.5, valign = 0.5,
+                 box.r=unit(0, "pt"),
+                 width = unit(0.85, "native")) +
+    xlim(0, 100) + ylim(0, 100)
+
+```
 
 ## TODO List
 ### Build gtsummary with spanner for patients excluded

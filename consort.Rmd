@@ -518,17 +518,23 @@ status %>%
   select(col_new) %>% 
   pull()
 ```
-### now lets' try to do the top 3rd programmatically
-with 3 chunks of text, 3 boxes, 3 lines.    
-Build the box_lines_top dataframe
-```{r}
-boxes <- c("assessment_box", "exclusion_box", "randomization_box")
-box_num <- c(1:3)
-lines <- c(1:3)
-line_arrow <- c(1,1,0) # whether or not to have arrowhead
-top_tbl <- tibble(boxes, box_num, lines, line_arrow)
 
-# build text for exclusion table
+
+
+
+## now let us try to do the top 3rd programmatically
+with 3 chunks of text, 3 boxes, 3 lines.    
+Build the top_tbl dataframe
+
+```{r}
+box <- c("assessment_box", "exclusion_box", "randomization_box")
+box_num <- c(1:3)
+label <- rep("",3)
+lines <- rep(0,3)
+char_wide <- rep(0,3)
+top_tbl <- tibble(box, box_num, label, lines, char_wide)
+
+# build text for exclusion box label
 status %>% 
   filter(randomized == "No") %>% 
   tabyl(excluded_reason) %>% 
@@ -551,114 +557,180 @@ label_ex <- glue_collapse(exclusion_table2$col_new) %>% #collapses to single str
   str_trim() #removes the last \n
 # put into top_tbl$label[2]
 
-# create labels for boxes 1-3
+# create text labels for boxes 1-3
 top_tbl$label[1] <- glue(status %>% tally() %>% pull(), " Patients Assessed for Eligibility")
 top_tbl$label[2] <- label_ex # created above
 top_tbl$label[3] <- glue(status %>% filter(randomized == "Yes") %>% tally() %>% pull(), " Patients randomly assigned\nand included in the intention-to-treat analysis")
 
+# now calculate true # of lines for all 3
 top_tbl$lines <- str_count(top_tbl$label, "\n") +1
 
+# now add width in characters to each
 top_tbl$char_wide[1] <- str_split(top_tbl$label[1], "\n") %>% unlist() %>% str_length() %>% max()
 top_tbl$char_wide[2] <- exclusion_table2$char_wide[1]
 top_tbl$char_wide[3] <- str_split(top_tbl$label[3], "\n") %>% unlist() %>% str_length() %>% max()
 ```
 
-### calculate top box width, height, location
-```{r}
-top_tbl <- top_tbl %>% 
-  mutate(box_height = lines *0.56,
-         box_width = char_wide*0.2,
-         x = 50,
-         box_center = c(95,85, 70),
-         y = box_center - box_height)
+### set up boxes, text, lines
 
-top_tbl$x[2] <- 86
-```
 
 ```{r}
 # try with geom_rect
-h_const = 5 # set adjustment for box height by # of lines
-w_const = 0.33 # set adjustment for box width by # of characters
+top = 100 #set top
+center = 50 # set center
+offset_r = 25 #set offset to Right for exclusion
+h_const = 2.3 # set adjustment for box height by # of lines
+w_const = 0.39 # set adjustment for box width by # of characters
+v_space_const = 2 # set adjustment between vertical boxes
 top_tbl %>% 
-  mutate(xmin = 50 - char_wide * w_const,
-         xmax = 50 + char_wide * w_const,
-         ymin = 100 - lines * h_const,
-         ymax = 100) ->
+  mutate(xmin = center - char_wide * w_const,
+         xmax = center + char_wide * w_const,
+         ymin = top - lines * h_const,
+         ymax = top) ->
 top_tbl2
 
-top_tbl2$xmin[2] <- (85 - top_tbl2$char_wide[2] * w_const)
-top_tbl2$xmax[2] <- (85 + top_tbl2$char_wide[2] * w_const)
-top_tbl2$ymin[2] <- (top_tbl2$ymin[1] - 5 - top_tbl2$lines[2]*h_const)
-top_tbl2$ymax[2] <- (top_tbl2$ymin[1] -5)
+top_tbl2$xmin[2] <- (center + offset_r - top_tbl2$char_wide[2] * w_const)
+top_tbl2$xmax[2] <- (center + offset_r  + top_tbl2$char_wide[2] * w_const)
+top_tbl2$ymin[2] <- (top_tbl2$ymin[1] - v_space_const - top_tbl2$lines[2]*h_const)
+top_tbl2$ymax[2] <- (top_tbl2$ymin[1] - v_space_const)
 
-top_tbl2$ymin[3] <- (top_tbl2$ymin[2] - 5 - top_tbl2$lines[3]*h_const)
-top_tbl2$ymax[3] <- (top_tbl2$ymin[2] -5)
+top_tbl2$ymin[3] <- (top_tbl2$ymin[2] - v_space_const - top_tbl2$lines[3]*h_const)
+top_tbl2$ymax[3] <- (top_tbl2$ymin[2] - v_space_const)
 
 ggplot(top_tbl2) +
       geom_rect(aes(xmin=xmin, xmax = xmax, ymin = ymin, ymax = ymax),
                 fill = "white", color = "black") +
-  annotate('text', x= 50, y= top_tbl2$ymax[1]- (top_tbl2$ymax[1]- top_tbl2$ymin[1])/2,
-           label= top_tbl2$label[1], size=2.5) +
-  xlim(0,100) + ylim(0,100)
-```
+  annotate('text', x= center, y= top_tbl2$ymax[1]- 
+             (top_tbl2$ymax[1]- top_tbl2$ymin[1])/2,
+           label= top_tbl2$label[1], size=3) +
+  # note for exclusions annotate - divide offset_r by 2 to allow 
+  # for left alignment
+  # create left alignment with hjust = 0
+  # add 0.5 as left padding
+  annotate('text', x= center + offset_r/2 + 0.5, y= top_tbl2$ymax[2]- 
+             (top_tbl2$ymax[2]- top_tbl2$ymin[2])/2,
+           label= top_tbl2$label[2], size=3, hjust = 0) +
+  annotate('text', x= center, y= top_tbl2$ymax[3]- 
+             (top_tbl2$ymax[3]- top_tbl2$ymin[3])/2,
+           label= top_tbl2$label[3], size=3) +
+  xlim(0,100) + ylim(0,100) ->
+q
 
-```{r geom_label attempt at boxes}
-data <- tibble(x= 1:100, y= 1:100)
-data %>% 
-  ggplot(aes(x, y)) +
-  scale_x_continuous(minor_breaks = seq(10, 100, 10)) +
-  scale_y_continuous(minor_breaks = seq(10, 100, 10)) +
-  theme_linedraw() ->
-  p
-# geom label attempt - hard to know where edges are.
-p +
-  geom_label(data = top_tbl,
-            mapping = aes(x= x, y=y, label=label), 
-            label.size=0.25, size = 3, label.r = unit(0.0, "lines")) +
-      xlim(0, 100) + ylim(0, 100) ->
-  q
+# generate lines - start by set all to zero
+top_tbl2$xstart <- top_tbl2$xend <- 
+  top_tbl2$ystart <- top_tbl2$yend <- 0
 
-# generate line 1
-top_tbl$x[1] = 50
-top_tbl$y[1] = 95-2
-top_tbl$xend[1] = 50
-top_tbl$yend[1] = 71.5
-top_tbl$x[2] = 50
-top_tbl$y[2] = 82.2
-top_tbl$xend[2] = 86-top_tbl$box_width/1.7
-top_tbl$yend[2] = 82.2
-top_tbl$x[3] = 50
-top_tbl$y[3] = 66.5
-top_tbl$xend[3] = 50
-top_tbl$yend[3] = 62
+top_tbl2$xstart[1] = center
+top_tbl2$ystart[1] = top_tbl2$ymin[1]
+top_tbl2$xend[1] = center
+top_tbl2$yend[1] = top_tbl2$ymax[3]
+top_tbl2$xstart[2] = center
+top_tbl2$ystart[2] = (top_tbl2$ymin[1] + top_tbl2$ymax[3])/2
+top_tbl2$xend[2] = top_tbl2$xmin[2]
+top_tbl2$yend[2] = (top_tbl2$ymin[1] + top_tbl2$ymax[3])/2
+top_tbl2$xstart[3] = center
+top_tbl2$ystart[3] = top_tbl2$ymin[3]
+top_tbl2$xend[3] = center
+top_tbl2$yend[3] = top_tbl2$ymin[3]- 2*v_space_const
 
-q +   geom_segment(data = top_tbl, aes(x=x, y=y, xend=xend, yend=yend),
+# problem - line 3 DOES NOT have an arrowhead.
+# need to build separately
+# 
+# now add lines/arrowheads
+q +   geom_segment(data = top_tbl2, aes(x=xstart, y=ystart, 
+                                xend=xend, yend=yend),
                lineend = "round", linejoin = "round",
                arrow = arrow(length = unit(0.2, "cm"),
-                             ends = "last", type = "closed"), arrow.fill = "black")
-ggplot(top_tbl[3,]) +
-  aes(x, y, label = label) +
-    geom_textbox(hjust = 0.5, vjust = 0.5,
-                 halign = 0.5, valign = 0.5,
-                 box.r=unit(0, "pt"),
-                 width = unit(0.85, "native")) +
-    xlim(0, 100) + ylim(0, 100)
+                ends = "last", type = "closed"), arrow.fill = "black") ->
+r
+r + theme_void() # show it
+```
 
+## Now add line 4 across
+
+```{r}
+n_arms = 5
+r +
+  geom_segment(x = center - n_arms*8, xend = center + n_arms*8,
+               y = top_tbl2$ymin[3]- 2*v_space_const,
+               yend = top_tbl2$ymin[3]- 2*v_space_const) ->
+s
+
+s + theme_void() # show it
 ```
 
 ## TODO List
-### Build gtsummary with spanner for patients excluded
+
+```{r}
+n_arms = 5
+center = 50
+arm <- paste0(rep("arm_", 5), 1:5)
+x <- c(center - 8*n_arms, center - 4*n_arms, center, # varies with n_arms
+       center + 4*n_arms, center + 8*n_arms)
+ystart <- rep(top_tbl2$ymin[3]- 2*v_space_const, 5)
+arms_tbl <- tibble(arm, x, ystart)
+
+arms_tbl <- arms_tbl %>% 
+  mutate(xstart =x,
+         xend = x,
+         yend_short = ystart - 2*v_space_const)
+```
+
+```{r}
+s +
+  geom_segment(data = arms_tbl, aes(x = xstart, xend = xend,
+               y = ystart, yend = yend_short),
+               lineend = "round", linejoin = "round",
+               arrow = arrow(length = unit(0.2, "cm"),
+                ends = "last", type = "closed"), arrow.fill = "black") ->
+t
+t + theme_void() # show it
+```
+
+### build function to convert table to collapsed text with line breaks, removing the last one
+### build function to count character width - single or multiline
+### build function to count lines
+
+### fix line 3 problem in line 636
+
+# change multiplier for arms - relate to total width
+# instead of 8, use width/ 12.5?
+### Draw N vertical arrows, spaced at center - 8* Narms, 4*narms, center +4, +8*narms. Build as tibble with narms rows (1:N)
+  ### for 4 arms, x = center -10*narms, center-5*narms, center +5, center +10
+  ### for 3 arms, x = center - 8* narmrs, center, center + 8* narms
+  ### for 2 arms, x = center - 8*narms, center + 8* narms
+  ### for 1 arm, x = center, without line 4
+
+### build assignment text boxes by arm, add labels to arms_tbl
+  ### count lines_assign, count char_width_assign for each - make columns
+  ### draw boxes - create xmin_assign, xmax_assign, ymin_assign, ymax_assign columns
+  ### annotate text centered
 ### place on plot
-### build randomized box
-### place on plot
-### build assignment text boxes by arm
-### place on plot
-### Build gtsummary with spanner for discontinued by arm
-### place on plot
-### Build boxes for discontinued by arm
+
+### Build boxes for discontinued by arm, add text labels to arms_tbl
+  ### count lines_disc, count char_width_disc for each - make columns
+  ### set up boxes with vspacing, r offset
+  ###  - create xmin_disc, xmax_disc, ymin_disc, ymax_disc columns
+  ### draw N boxes
+  ### annotate text x N , left justified
 ### Place on plot
-### add first 2 arrows
-### add horizontal line and 5 arrows
-### add 5 long arrows
-### add 5 short arrows
+
+### Build boxes for completed by arm, add labels to tibble
+  ### count lines_comp, count char_width_comp for each - make columns
+  ### draw boxes with vspacing, r offset
+  ###  - create xmin_comp, xmax_comp, ymin_comp, ymax_comp columns
+  ### draw N boxes
+  ### annotate text x N centered
+### add downward arrows
+  ### add xstart_down, xend_down, ystart_down, yend_down columns
+  ### geom_segment with arrowheads
+### add rightward arrows to discontinuation box
+  ### add xstart_r, xend_r, ystart_r, yend_r columns
+  ### geom_segment with arrowheads
 ### add theme_void
+
+### Options - for single arm - leave out horizontal line
+### assert checks - is n_arm = actual number of arms listed?
+### optional argument - do you want to fct_lump discontinuation reasons if there are more than N? (discontinuation_limit = 10)
+### optional argument - do you want to fct_lump exclusion reasons if more there are more than N? (exclusion_limit = 10)
+### option to make wider - related to # of arms?

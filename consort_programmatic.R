@@ -9,15 +9,11 @@
 # arm
 # completed
 
-knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(glue)
 library(janitor)
-library(gt)
-library(gtsummary)
-library(ggtext)
 
-# build status table
+# build status table for 5-arm Upa UC
 status <- tibble(randomized = c(rep("Yes", 250),
                                 rep("No", 196)),
                  excluded_reason = c(rep("None", 250),

@@ -1,6 +1,14 @@
 # build study status tables
 
-# start with 5-arm Upa UC
+# need 2 arm study
+
+
+# need 3 arm study
+
+# need 4 arm study
+
+
+# now 5-arm Upa UC
 # published in Gastroenterology, 2020
 # https://www.gastrojournal.org/article/S0016-5085(20)30241-9/fulltext
 #
@@ -46,7 +54,7 @@ study_id <- str_pad(1L:446L, width = 4,
 status5 <- cbind(study_id, status5)
 status5
 
-# Now an 8-arm RCTto enhance influenze vaccination uptake
+# Now an 8-arm RCT to enhance influenze vaccination uptake
 # published in Social Science & Medicine 2017
 # https://www.sciencedirect.com/science/article/pii/S0277953617301922
 #

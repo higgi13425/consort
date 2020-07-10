@@ -14,7 +14,7 @@ library(glue)
 library(janitor)
 
 # build status table for 5-arm Upa UC
-status <- tibble(randomized = c(rep("Yes", 250),
+status5upa <- tibble(randomized = c(rep("Yes", 250),
                                 rep("No", 196)),
                  excluded_reason = c(rep("None", 250),
                                      rep("Did not meet inclusion criteria", 172),
@@ -47,13 +47,13 @@ status <- tibble(randomized = c(rep("Yes", 250),
                                rep("None", 196)))
 # now shuffle rows
 set.seed(42)
-rows <- sample(nrow(status))
-status <- status[rows, ]
+rows <- sample(nrow(status5upa))
+status5upa <- status5upa[rows, ]
 # now add study_id, formatted as "000X"
 study_id <- str_pad(1L:446L, width = 4,
                     side = "left", pad = "0")
-status <- cbind(study_id, status)
-status
+status5upa <- cbind(study_id, status5upa)
+status5upa
 
 
 # Take a look at the status table data for the 446 screeened patients.
@@ -440,7 +440,16 @@ Check
 ### build function to count lines
 Check
 
-### fix line 3 problem in line 636
+### fix line 3 problem (has arrow, should not) in line 636??
+## add 2 arm trial - rectal indomethacin
+## https://www.nejm.org/doi/full/10.1056/NEJMoa1111103
+##
+## add 3 arm trial - SONIC
+## https://www.nejm.org/doi/full/10.1056/nejmoa0904492
+##
+## add 4 arm tofa crohn in Gut
+## https://gut.bmj.com/content/66/6/1049
+##
 
 # change multiplier for arms - relate to total width
 # instead of 8, use width/ 12.5?
@@ -483,3 +492,20 @@ Check
 ### optional argument - do you want to fct_lump discontinuation reasons if there are more than N? (discontinuation_limit = 10)
 ### optional argument - do you want to fct_lump exclusion reasons if more there are more than N? (exclusion_limit = 10)
 ### option to make wider - related to # of arms?
+
+# Edge cases
+## handle no exclusions
+## handle no discontinuations
+## Handle up to 9 reasons for discontinue
+## option to fct_lump if >9 discontinue reasons - lump to other
+## option to fct_lump if >9 exclusion reasons - lump to other
+## option to chance fct_lump threshold in arguments
+## auto str_wrap (insert \n) if exclusion > 30 char
+## auto str_wrap (insert \n) if discontinue > 30 char
+## auto str_wrap (insert \n) if assignment > 30 char
+## auto str_wrap (insert \n) if rand box > 50 char
+## auto str_wrap (insert \n) if assess box > 50 char
+##
+## Consider add hanging exdent to discontinuation reasons
+## with str_wrap exdent argument
+## cat(str_wrap(text, width = 30, exdent = 2), "\n")

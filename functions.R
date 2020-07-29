@@ -15,6 +15,7 @@ collapse_to_string <- function(column) { # depends on glue
   glue_collapse(column) %>% #collapses to single string
     str_trim() #trims off final newline
 }
+# note might be easier as paste() with option collapse = "\n"
 # possible unit tests
 # input column with multiple lines
 # input column with single line

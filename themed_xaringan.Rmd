@@ -6,12 +6,12 @@ date: "2020/08/27"
 output:
   xaringan::moon_reader:
     lib_dir: libs
+    css: xaringan-themer.css
     nature:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
 ---
-
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
@@ -19,6 +19,31 @@ library(xaringan)
 library(xaringanthemer)
 library(tidyverse)
 ```
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#292077" ,
+  secondary_color = "#8c54fc",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+background-image: 
+```{r, echo=FALSE, out.width="55%"}
+knitr::include_graphics("hex-ggconsort.png")
+```
+
+
+
+
+---
+class: inverse, center, middle
+
+# {ggconsort}
+
+
+---
 
 
 class: top, left
@@ -152,3 +177,11 @@ class:top, left
 - Helper functions to take standard data formats (tidycdisc?) and make a status_table
 - more options, arguments - currently like the model T.
 - You can have any font or spacing that you want, as long as it is the default.
+
+---
+class: inverse, center, middle
+
+# Thanks!
+
+---
+

@@ -21,23 +21,15 @@ class: center, middle, inverse, title-slide
 
 
 
-
-background-image: 
-&lt;img src="hex-ggconsort.png" width="55%" /&gt;
-
-
-
-
----
-class: inverse, center, middle
-
+class: header_background, center
 # {ggconsort}
 
 
+&lt;img src="hex-ggconsort.png" width="57%" /&gt;
+
 ---
 
-
-class: top, left
+class: header_background
 
 # CONSORT diagrams
 
@@ -48,18 +40,20 @@ In clinical trials, a CONSORT diagram shows the flow of participants from screen
 
 ---
 
-class: top, left
+class: header_background
 
 # CONSORT diagrams
 
 ### Endorsed by most medical journals
-
+.pull-left[
 CONSORT = Consolidated Standards of Reporting Trials, developed by the CONSORT group, &lt;http://www.consort-statement.org&gt;, which started in 1993 to improve the quality of reporting of clinical trials.
-
+]
+.pull-right[
 ![image](CONSORT_template.png)
+]
 ---
 
-class: top, left
+class: header_background
 
 # An Artisanal Product
 
@@ -69,13 +63,17 @@ class: top, left
 - Most CONSORT diagrams are built from templates in MS Word, Powerpoint, or Adobe Illustrator.
 
 ---
-class: top, left
-# Components of a Consort Diagram (Naming)
-## insert marked up image here
+
+class: header_background
+
+# Naming Diagram Components
+### insert marked up image here
 - note top has N = 1 of each
 - note bottom has N = n_arms of each
 ---
-class: top, left
+
+class: header_background
+
 # Basic Functionality
 
 ## draw_consort(status_table)
@@ -91,7 +89,8 @@ class: top, left
 
 
 ---
-class: top, left
+
+class: header_background
 # Under the Hood
 
 - requires a standardized status_table as input
@@ -104,69 +103,74 @@ class: top, left
 
 ---
 
-class: top, left
+class: header_background
+
 # Demo for 2 arms
 
-
 ---
 
-class: top, left
-# Demo for 3 arms
-
----
-
-class: top, left
-# Demo for 4 arms
-
----
-
-class: top, left
+class: header_background
 # Demo for 5 arms
 
 ---
 
-class: top, left
+class: header_background
 # Demo for 8 arms
 
 ---
 
-class: top, left
+class: header_background
 # Requirements of a Status Table
 - One row per candidate participant
-- includes both
-- randomized participants
-- and candidate participants excluded (aka screen failures)
+- Includes both
+  + randomized participants
+  + and candidate participants excluded (aka screen failures)
+  
 - (optional) column - studyid
-- column `randomized` - Yes or NA
-- column `excluded_reason` - Text or NA
-- column `arm` - Text per Arm or NA
-- column `completed` - Yes or NA
-- column `discontinued_reason` - Text or NA
-- column `analyzed` -  Yes or NA
-- column `not_analyzed_reason` - Text or NA
----
-class:top, left
-# The Package and Repository
+- column `randomized` -             Yes or NA
+- column `excluded_reason` -        Text or NA
+- column `arm` -                    Text per Arm or NA
+- column `completed` -              Yes or NA
+- column `discontinued_reason` -    Text or NA
+- column `analyzed` -               Yes or NA
+- column `not_analyzed_reason` -    Text or NA
 
 ---
-class:top, left
+
+class: header_background
+# Example of a Status Table
+
+
+
+---
+class: header_background
+# The Package and Repository
+.center[
+https://github.com/higgi13425/ggconsort
+]
+
+&lt;img src="github-ggconsort.png" width="80%" style="display: block; margin: auto;" /&gt;
+---
+class: header_background
 # The Hex Sticker
 
-Because one must always have a hex sticker
-
-
-&lt;div class="figure"&gt;
-&lt;img src="hex-ggconsort.png" alt="A nice image." width="55%" /&gt;
-&lt;p class="caption"&gt;A nice image.&lt;/p&gt;
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="hex-ggconsort.png" alt="Because one must always have a hex sticker" width="53%" /&gt;
+&lt;p class="caption"&gt;Because one must always have a hex sticker&lt;/p&gt;
 &lt;/div&gt;
 
+
+
 ---
-class:top, left
-# Feedback and Collaborators Wanted!
+class: header_background
+# Collaborators Wanted!
 ## Goals
 - More (and better) vignettes
 - A better README
-- Helper functions to take standard data formats (tidycdisc?) and make a status_table
+- Helper functions to take standard data formats and make a status_table
+  + CDISC
+  + tidycdisc?
+  + ADaM
 - more options, arguments - currently like the model T.
 - You can have any font or spacing that you want, as long as it is the default.
 

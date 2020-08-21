@@ -7,7 +7,7 @@ library(tidyverse)
 ## build status2 ----
 status2 <- tibble(randomized = c(rep("Yes", 602),
                                  rep("No", 197)),
-                  exc_reason = c(rep(NA, 602), #must match randomized = Yes
+                  excluded_reason = c(rep(NA, 602), #must match randomized = Yes
                                       rep("Did not meet inclusion criteria", 169),
                                       rep("Met Exclusion Criteria", 11),
                                       rep("Did not Undergo ERCP", 17)),
@@ -188,7 +188,7 @@ status5
 #
 # build status8 table for 8-arm influenze uptke
 status8 <- tibble(randomized = rep("Yes", 13806),
-                  exc_reason = rep(NA, 13806),
+                  excluded_reason = rep(NA, 13806),
           arm = c(rep("Control Group 1\n(no contact)", 1727),
             rep("Control Group 2\n(demographics)", 1699),
             rep("Intention,\nAttitude", 1790),

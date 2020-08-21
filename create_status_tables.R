@@ -33,10 +33,10 @@ status2 <- tibble(randomized = c(rep("Yes", 602),
 set.seed(42)
 rows <- sample(nrow(status2))
 status2 <- status2[rows, ]
-# now add study_id, formatted as "000X"
-study_id <- str_pad(1L:799L, width = 5,
+# now add study_id, formatted as "00X"
+status2$study_id <- str_pad(1L:799L, width = 5,
                     side = "left", pad = "0")
-status2 <- cbind(study_id, status5)
+status2 <- status2 %>% relocate(study_id)
 status2
 
 ## build status3 ----
@@ -82,9 +82,9 @@ set.seed(42)
 rows <- sample(nrow(status3))
 status3 <- status3[rows, ]
 # now add study_id, formatted as "000X"
-study_id <- str_pad(1L:817L, width = 5,
-                    side = "left", pad = "0")
-status3 <- cbind(study_id, status3)
+status3$study_id <- str_pad(1L:817L, width = 6,
+                            side = "left", pad = "0")
+status3 <- status3 %>% relocate(study_id)
 status3
 
 ## build status4 ----
@@ -127,14 +127,13 @@ status4 <- tibble(randomized = c(rep("Yes", 280),
 set.seed(42)
 rows <- sample(nrow(status4))
 status4 <- status4[rows, ]
-# now add study_id, formatted as "000X"
-study_id <- str_pad(1L:567L, width = 5,
-                    side = "left", pad = "0")
-status4 <- cbind(study_id, status4)
+# now add study_id, formatted as "00X"
+status4$study_id <- str_pad(1L:567L, width = 5,
+                            side = "left", pad = "0")
+status4 <- status4 %>% relocate(study_id)
 status4
 
 ## build status5 ----
-# need 5-arm study
 # build status5 table for 5-arm Upa for UC
 # Gastroenterology 2020;
 # Sandborn, Higgins, et al.
@@ -176,9 +175,9 @@ set.seed(42)
 rows <- sample(nrow(status5))
 status5 <- status5[rows, ]
 # now add study_id, formatted as "000X"
-study_id <- str_pad(1L:446L, width = 4,
-                    side = "left", pad = "0")
-status5 <- cbind(study_id, status5)
+status5$study_id <- str_pad(1L:446L, width = 6,
+                            side = "left", pad = "0")
+status5 <- status5 %>% relocate(study_id)
 status5
 
 ## build status8 ----
@@ -186,7 +185,7 @@ status5
 # published in Social Science & Medicine 2017
 # https://www.sciencedirect.com/science/article/pii/S0277953617301922
 #
-# build status8 table for 8-arm influenze uptke
+# build status8 table for 8-arm influenza uptake
 status8 <- tibble(randomized = rep("Yes", 13806),
                   excluded_reason = rep(NA, 13806),
           arm = c(rep("Control Group 1\n(no contact)", 1727),
@@ -274,7 +273,7 @@ status8 <- status8[rows, ]
 # now add study_id, formatted as "000X"
 # range up to full number randomized
 # pick a width to offer at least one leading zero
-study_id <- str_pad(1L:13806L, width = 8,
-                    side = "left", pad = "0")
-status8 <- cbind(study_id, status8)
+status8$study_id <- str_pad(1L:13806L, width = 7,
+                            side = "left", pad = "0")
+status8 <- status8 %>% relocate(study_id)
 status8

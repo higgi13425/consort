@@ -66,10 +66,18 @@ class: header_background
 
 # An Artisanal Product
 
-- CONSORT diagrams are now commonly used, but the template provided does not provide an underlying data structure, or best practices for building a diagram. 
-- The CONSORT diagram has become an artisanal product, built by counting categories and copy/pasting results into templates. 
+- CONSORT diagrams are now commonly used to report RCTs,<br>
+  but the template provided does not provide: 
+  + An underlying data structure, or 
+  + Best practices for building a diagram. 
+- The CONSORT diagram has become an artisanal product
+  + Usually built by counting categories and 
+  + Copy/pasting results into templates. 
 - This leads to frequent errors in which the participant numbers don't add up. 
-- Most CONSORT diagrams are built from templates in MS Word, Powerpoint, or Adobe Illustrator.
+- Most CONSORT diagrams are built from templates in 
+  + MS Word
+  + Powerpoint, or 
+  + Adobe Illustrator.
 
 ---
 
@@ -83,7 +91,7 @@ class: header_background
 
 class: header_background
 
-# Basic Functionality
+# {ggconsort} Basic Functionality
 
 ## draw_consort(status_table)
 
@@ -102,24 +110,19 @@ class: header_background
 class: header_background
 # Under the Hood
 
-- requires a standardized status_table as input
-- counts number of participants in each box/arm
-- creates text for each box in a box_table
-- calculates height, width, center of boxes in box_table
-- calculates position of each box in box_table
-- calculates start, end of each line (one without arrowhead)
-
+- Requires a standardized status_table as input
+- Counts the number of participants in each box/arm
+- Creates text for each box in a box_table
+- Calculates height, width, center of boxes in box_table
+- Calculates position of each box in box_table
+- Calculates start, end of each line (one without arrowhead)
+- {ggplot2} draws the elements in box_table
 
 ---
 
 class: header_background
 
 # Demo for 2 arms
-
----
-
-class: header_background
-# Demo for 5 arms
 
 ---
 
@@ -131,25 +134,28 @@ class: header_background
 class: header_background
 # Requirements of a Status Table
 - One row per candidate participant
-- Includes both
+- Includes both: 
   + randomized participants
   + and candidate participants excluded (aka screen failures)
   
 - (optional) column - studyid
 - column `randomized` -             Yes or NA
-- column `excluded_reason` -        Text or NA
+- column `exc_reason` -             Text or NA
 - column `arm` -                    Text per Arm or NA
+- column `recieved_med` -           Yes or NA
+- column `dnr_reason` -             Text or NA
 - column `completed` -              Yes or NA
 - column `discontinued_reason` -    Text or NA
 - column `analyzed` -               Yes or NA
-- column `not_analyzed_reason` -    Text or NA
+- column `not_an_reason` -          Text or NA
 
 ---
 
 class: header_background
 # Example of a Status Table
-
-
+```{r, echo=FALSE, out.width="100%", fig.align='center'}
+knitr::include_graphics("status_table.png")
+```
 
 ---
 class: header_background
@@ -170,24 +176,23 @@ knitr::include_graphics("hex-ggconsort.png")
 ```
 
 
-
 ---
 class: header_background
 # Collaborators Wanted!
 ## Goals
-- More (and better) vignettes
 - A better README
-- Helper functions to take standard data formats and make a status_table
-  + CDISC
-  + tidycdisc?
-  + ADaM
-- more options, arguments - currently like the model T.
-- You can have any font or spacing that you want, as long as it is the default.
+- More (and better) vignettes
+- An improved {pkgdown} site
+- Helper functions to take standard data formats and make a status_table from:
+  + CDISC data format
+  + tidycdisc data format?
+  + ADaM data format
+- More options, customization - currently like the original Model T.
+  + You can have any font or spacing that you want, as long as it is the default.
 
 ---
 class: inverse, center, middle
 
 # Thanks!
 
----
 

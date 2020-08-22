@@ -1,22 +1,309 @@
-# Once more, Programmatically
-# Let's try this again, but with a programmatic approach.
-
-# The status table has 5 variables:
-
-# study_id
-# randomized
-# excluded_reason
-# arm
-# completed
 
 library(tidyverse)
 library(glue)
 library(janitor)
+source('functions.R')
+
+# The status table example:
+
+## build status2 ----
+status2 <- tibble(randomized = c(rep("Yes", 602),
+                                 rep(NA, 197)),
+excluded_reason = c(rep(NA, 602), #must match randomized = Yes
+       rep("Did not meet inclusion criteria", 169),
+       rep("Met Exclusion Criteria", 11),
+       rep("Did not Undergo ERCP", 17)),
+  arm = c(rep("Placebo", 307),
+        rep("Indomethacin", 295),
+        rep(NA, 197) # must match randomized = No
+                  ),
+  recieved_med = c(rep("Yes", 307),
+        rep("Yes", 295),
+        rep(NA, 197) ),
+  completed = c(rep("Yes", 307),
+              rep(NA, 1),
+              rep("Yes", 294),
+              rep(NA, 197) ),
+  discont_reason = c(rep(NA, 307),
+             rep("Could not hold Suppository", 1),
+             rep(NA, 294),
+             rep(NA, 197) ),
+  analyzed = c(rep("Yes", 602),
+             rep(NA, 197) ),
+   not_an_reason = rep(NA, 799) )
+# now shuffle rows
+set.seed(42)
+rows <- sample(nrow(status2))
+status2 <- status2[rows, ]
+# now add study_id, formatted as "00X"
+status2$study_id <- str_pad(1L:799L, width = 5,
+                            side = "left", pad = "0")
+status2 <- status2 %>% relocate(study_id)
+status2
+
+# set plotting constants -----
+v_space_const = 8 # set adjustment between vertical boxes
+h_const = 6 # set adjustment for box height by # of lines
+w_const = 1.2 # set adjustment for box width by # of characters
+
+
+# set up top_table ----
+box <- c("assessment_box", "exclusion_box", "randomization_box")
+box_num <- c(10,20,30)
+label <- rep("",3)
+lines <- rep(0,3)
+char_wide <- rep(0,3)
+top_tbl <- tibble(box, box_num, label, lines, char_wide)
+
+
+# set up for exclusion box row ----
+# build text for exclusion box label
+status2 %>%
+  filter(is.na(randomized)) %>%
+  tabyl(excluded_reason) %>%
+  adorn_totals("row") %>%
+  select(n, excluded_reason) %>%
+  arrange(desc(n)) ->
+  exclusion_table
+
+exclusion_table[1,2] <- "Patients excluded"
+
+exclusion_table2 <- mutate(exclusion_table,
+                           col_new = paste0(n, " ",excluded_reason, "\n")) %>%
+  select(col_new)
+
+# measure max_length of string in col_new
+ex_char_wide <- max(nchar(exclusion_table2$col_new)) - 2
+# later will put this width into top_boxes_tbl row 2
+
+# glue into single string with line breaks
+label_ex <- glue_collapse(exclusion_table2$col_new) %>% #collapses to single string
+  str_trim() #removes the last \n
+# later will put into top_boxes_tbl$label[2]
+
+# fill in text labels for boxes 10-30 ---
+# assessment label
+top_tbl$label[1] <- glue(status2 %>% tally() %>% pull(), " Patients Assessed for Eligibility")
+# excluded label
+top_tbl$label[2] <- label_ex # created above
+# randomized label
+top_tbl$label[3] <- glue(status2 %>% filter(randomized == "Yes") %>% tally() %>% pull(), " Patients randomly assigned\nand included in the intention-to-treat analysis")
+
+# calculate true # of lines for all 3 ----
+top_tbl$lines <- count_lines(top_tbl$label)
+
+# add width in characters to each
+top_tbl$char_wide[1] <- str_split(top_tbl$label[1], "\n") %>% unlist() %>% str_length() %>% max()
+top_tbl$char_wide[2] <- ex_char_wide
+top_tbl$char_wide[3] <- str_split(top_tbl$label[3], "\n") %>% unlist() %>% str_length() %>% max()
+
+# add box x,y (roughly)
+top_tbl %>%
+  mutate(xmin = -char_wide * w_const,
+         xmax = char_wide * w_const,
+         ymin = 0,
+         ymax = 0) ->
+top_tbl2
+
+# offset exclusion box to the right
+# by width of box 2 plus
+# half width of box 3 plus 2 v_spaces
+r_offset =  top_tbl2$char_wide[2]*w_const +
+            top_tbl2$char_wide[3]*w_const/2 +
+            v_space_const*2
+
+# right adjust xmin and xmax for exclusion box by offset
+top_tbl2$xmin[2] <- top_tbl2$xmin[2]+ r_offset
+top_tbl2$xmax[2] <- top_tbl2$xmax[2]+ r_offset
+
+# set ymins for each box
+top_tbl2$ymin[1] <- 6*v_space_const +
+                        top_tbl$lines[3]* h_const +
+                        top_tbl$lines[2]* h_const
+
+top_tbl2$ymin[2] <- 4*v_space_const +
+  top_tbl$lines[3]* h_const
+
+top_tbl2$ymin[3] <- 2*v_space_const
+
+top_tbl2 %>%
+  mutate(ymax = ymin + lines*h_const) %>%
+  mutate(ycenter = ymin + (ymax-ymin)/2) %>%
+  mutate(xcenter = xmin + (xmax-xmin)/2) %>%
+  mutate(xstart = xcenter,
+         xend = xcenter,
+         ystart = ymin,
+         yend = 0) ->
+top_tbl3
+
+# line adjustments
+top_tbl3$xstart[2] <- top_tbl3$xcenter[1]
+top_tbl3$xend[2] <- top_tbl3$xmin[2]
+top_tbl3$ystart[2] <- mean(c(top_tbl3$ymin[1],
+                          top_tbl3$ymax[3]))
+top_tbl3$ystart[3] <- top_tbl3$ymin[3]
+top_tbl3$yend[1] <- top_tbl3$ymax[3]
+top_tbl3$yend[2] <- mean(c(top_tbl3$ymin[1],
+                           top_tbl3$ymax[3]))
+
+# TEST draw top boxes with geom_rect ----
+
+ggplot(top_tbl3) +
+  geom_rect(aes(xmin=xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "white", color = "black") +
+  geom_text(aes(x=xcenter, y = ycenter, label = label),
+            size =3, hjust = "center") +
+  geom_segment(aes(x=xstart, y=ystart,
+                  xend=xend, yend=yend),
+               lineend = "round", linejoin = "round",
+               arrow = arrow(length = unit(0.2, "cm"),
+                             ends = "last", type = "closed"),
+                        arrow.fill = "black")
+
+
+
+
+
+
+
+  # note for exclusions annotate - divide offset_r by 2 to allow
+  # for left alignment
+  # create left alignment with hjust = 0
+  # add 0.5 as left padding
+  annotate('text', x= xcenter + r_offset * 0.5,
+           y= ycenter,
+        label= top_boxes_tbl3$label[2], size=3, hjust = 0) +
+  annotate('text', x= 0, y= top_boxes_tbl3$ymax[3]-
+          (top_boxes_tbl3$ymax[3]- top_boxes_tbl3$ymin[3])/2,
+           label= top_boxes_tbl3$label[3], size=3)
+
+# draw top with geom_rect
+#v_space_const = 5 # set adjustment between vertical boxes
+#h_const = 5.5 # set adjustment for box height by # of lines
+#w_const = 0.65 # set adjustment for box width by # of characters
+top = 4*v_space_const + sum(top_boxes_tbl$lines)* h_const #set top
+center = 50 # set center
+width = w_const*(top_boxes_tbl$char_wide[3] +
+        top_boxes_tbl$char_wide[2] *2) +
+        4*v_space_const
+#set offset to Right for exclusion
+offset_r = 0.5 * w_const * top_boxes_tbl$char_wide[3] +
+          2*v_space_const
+
+
+top_boxes_tbl %>%
+  mutate(xmin = center - char_wide * w_const,
+         xmax = center + char_wide * w_const,
+         ymin = top - lines * h_const,
+         ymax = top) ->
+  top_tbl2
+
+top_tbl2$xmin[2] <- (center + offset_r - top_tbl2$char_wide[2] * w_const)
+top_tbl2$xmax[2] <- (center + offset_r  + top_tbl2$char_wide[2] * w_const)
+top_tbl2$ymin[2] <- (top_tbl2$ymin[1] - v_space_const - top_tbl2$lines[2]*h_const)
+top_tbl2$ymax[2] <- (top_tbl2$ymin[1] - v_space_const)
+
+top_tbl2$ymin[3] <- (top_tbl2$ymin[2] - v_space_const - top_tbl2$lines[3]*h_const)
+top_tbl2$ymax[3] <- (top_tbl2$ymin[2] - v_space_const)
+
+ggplot(top_tbl2) +
+  geom_rect(aes(xmin=xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            fill = "white", color = "black") +
+  annotate('text', x= center, y= top_tbl2$ymax[1]-
+             (top_tbl2$ymax[1]- top_tbl2$ymin[1])/2,
+           label= top_tbl2$label[1], size=3) +
+  # note for exclusions annotate - divide offset_r by 2 to allow
+  # for left alignment
+  # create left alignment with hjust = 0
+  # add 0.5 as left padding
+  annotate('text', x= center + offset_r/2 + 0.5, y= top_tbl2$ymax[2]-
+             (top_tbl2$ymax[2]- top_tbl2$ymin[2])/2,
+           label= top_tbl2$label[2], size=3, hjust = 0) +
+  annotate('text', x= center, y= top_tbl2$ymax[3]-
+             (top_tbl2$ymax[3]- top_tbl2$ymin[3])/2,
+           label= top_tbl2$label[3], size=3) +
+  xlim(0,200) + ylim(0,200) ->
+  q
+
+# generate lines - start by set all to zero
+top_tbl2$xstart <- top_tbl2$xend <-
+  top_tbl2$ystart <- top_tbl2$yend <- 0
+
+top_tbl2$xstart[1] = center
+top_tbl2$ystart[1] = top_tbl2$ymin[1]
+top_tbl2$xend[1] = center
+top_tbl2$yend[1] = top_tbl2$ymax[3]
+top_tbl2$xstart[2] = center
+top_tbl2$ystart[2] = (top_tbl2$ymin[1] + top_tbl2$ymax[3])/2
+top_tbl2$xend[2] = top_tbl2$xmin[2]
+top_tbl2$yend[2] = (top_tbl2$ymin[1] + top_tbl2$ymax[3])/2
+top_tbl2$xstart[3] = center
+top_tbl2$ystart[3] = top_tbl2$ymin[3]
+top_tbl2$xend[3] = center
+top_tbl2$yend[3] = top_tbl2$ymin[3]- 2*v_space_const
+
+# problem - line 4 DOES NOT have an arrowhead.
+# need to build separately
+#
+# now add lines/arrowheads
+q +   geom_segment(data = top_tbl2, aes(x=xstart, y=ystart,
+                                        xend=xend, yend=yend),
+                   lineend = "round", linejoin = "round",
+                   arrow = arrow(length = unit(0.2, "cm"),
+                                 ends = "last", type = "closed"), arrow.fill = "black") ->
+  r
+r + theme_void() # show it
+
+
+## Now add line 4 across
+
+
+n_arms = 5
+r +
+  geom_segment(x = center - n_arms*8, xend = center + n_arms*8,
+               y = top_tbl2$ymin[3]- 2*v_space_const,
+               yend = top_tbl2$ymin[3]- 2*v_space_const) ->
+  s
+
+s + theme_void() # show it
+
+
+
+
+
+
+
+## TODO List
+
+
+n_arms = 5
+center = 50
+arm <- paste0(rep("arm_", 5), 1:5)
+x <- c(center - 8*n_arms, center - 4*n_arms, center, # varies with n_arms
+       center + 4*n_arms, center + 8*n_arms)
+ystart <- rep(top_tbl2$ymin[3]- 2*v_space_const, 5)
+arms_tbl <- tibble(arm, x, ystart)
+
+arms_tbl <- arms_tbl %>%
+  mutate(xstart =x,
+         xend = x,
+         yend_short = ystart - 2*v_space_const)
+
+
+s +
+  geom_segment(data = arms_tbl, aes(x = xstart, xend = xend,
+                                    y = ystart, yend = yend_short),
+               lineend = "round", linejoin = "round",
+               arrow = arrow(length = unit(0.2, "cm"),
+                             ends = "last", type = "closed"), arrow.fill = "black") ->
+  t
+t + theme_void() # show it
 
 # build status table for 5-arm Upa UC
 status5upa <- tibble(randomized = c(rep("Yes", 250),
-                                rep("No", 196)),
-                 excluded_reason = c(rep("None", 250),
+                                rep(NA, 196)),
+                 excluded_reason = c(rep(NA, 250),
                                      rep("Did not meet inclusion criteria", 172),
                                      rep("Withdrew consent", 17),
                                      rep("Lost to follow up", 2),
@@ -59,11 +346,11 @@ status5upa
 # Take a look at the status table data for the 446 screeened patients.
 # Then we will look at tabyls for each of the four categorical variables
 
-head(status)
-status %>% tabyl(randomized)
-status %>% tabyl(excluded_reason)
-status %>% tabyl(arm)
-status %>% tabyl(completed)
+head(status5upa)
+status5upa %>% tabyl(randomized)
+status5upa %>% tabyl(excluded_reason)
+status5upa %>% tabyl(arm)
+status5upa %>% tabyl(completed)
 
 # Now let's see if we can rebuild the consort diagram programmatically. We will build up each piece.
 # But we will not use any of the raw numbers.
@@ -276,15 +563,15 @@ status %>%
 #
 #
 box <- c("assessment_box", "exclusion_box", "randomization_box")
-box_num <- c(1:3)
+box_num <- c(10,20,30)
 label <- rep("",3)
 lines <- rep(0,3)
 char_wide <- rep(0,3)
-top_tbl <- tibble(box, box_num, label, lines, char_wide)
+top_boxes_tbl <- tibble(box, box_num, label, lines, char_wide)
 
 # build text for exclusion box label
-status %>%
-  filter(randomized == "No") %>%
+status5upa %>%
+  filter(randomized == NA) %>%
   tabyl(excluded_reason) %>%
   adorn_totals("row") %>%
   select(n, excluded_reason) %>%
@@ -380,7 +667,7 @@ top_tbl2$ystart[3] = top_tbl2$ymin[3]
 top_tbl2$xend[3] = center
 top_tbl2$yend[3] = top_tbl2$ymin[3]- 2*v_space_const
 
-# problem - line 3 DOES NOT have an arrowhead.
+# problem - line 4 DOES NOT have an arrowhead.
 # need to build separately
 #
 # now add lines/arrowheads

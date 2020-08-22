@@ -43,8 +43,9 @@ status2
 
 # set plotting constants -----
 v_space_const = 8 # set adjustment between vertical boxes
+h_space_const = 6 # set adjustment between horizontal boxes
 h_const = 6 # set adjustment for box height by # of lines
-w_const = 1.2 # set adjustment for box width by # of characters
+w_const = 3.5 # set adjustment for box width by # of characters
 
 # detect number of arms
 n_arms <- status2 %>%
@@ -112,10 +113,10 @@ top_tbl %>%
 
 # offset exclusion box to the right
 # by width of box 2 plus
-# half width of box 3 plus 2 v_spaces
+# half width of box 3 plus 2 h_spaces
 r_offset =  top_tbl2$char_wide[2]*w_const +
   top_tbl2$char_wide[3]*w_const/2 +
-  v_space_const*2
+  h_space_const*2
 
 # right adjust xmin and xmax for exclusion box by offset
 top_tbl2$xmin[2] <- top_tbl2$xmin[2]+ r_offset
@@ -165,7 +166,8 @@ ggplot(top_tbl3) +
                arrow = arrow(length = unit(0.2, "cm"),
                              ends = "last", type = "closed"),
                arrow.fill = "black") +
-  geom_segment(aes( x = - n_arms * v_space_const*4,
-                    xend = n_arms * v_space_const*4,
+  geom_segment(aes( x = - n_arms * h_space_const*16,
+                    xend = n_arms * h_space_const*16,
                     y = 0, yend = 0)) +
   theme_void()
+  #coord_cartesian(xlim = c(-300, 300), ylim = c(-200, 200))

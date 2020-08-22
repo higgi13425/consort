@@ -4,51 +4,21 @@ library(glue)
 library(janitor)
 source('functions.R')
 
-# The status table example:
+# build status table examples:
+source('create_status_tables.R')
 
-## build status2 ----
-status2 <- tibble(randomized = c(rep("Yes", 602),
-                                 rep(NA, 197)),
-                  excluded_reason = c(rep(NA, 602), #must match randomized = Yes
-                                      rep("Did not meet inclusion criteria", 169),
-                                      rep("Met Exclusion Criteria", 11),
-                                      rep("Did not Undergo ERCP", 17)),
-                  arm = c(rep("Placebo", 307),
-                          rep("Indomethacin", 295),
-                          rep(NA, 197) # must match randomized = No
-                  ),
-                  recieved_med = c(rep("Yes", 307),
-                                   rep("Yes", 295),
-                                   rep(NA, 197) ),
-                  completed = c(rep("Yes", 307),
-                                rep(NA, 1),
-                                rep("Yes", 294),
-                                rep(NA, 197) ),
-                  discont_reason = c(rep(NA, 307),
-                                     rep("Could not hold Suppository", 1),
-                                     rep(NA, 294),
-                                     rep(NA, 197) ),
-                  analyzed = c(rep("Yes", 602),
-                               rep(NA, 197) ),
-                  not_an_reason = rep(NA, 799) )
-# now shuffle rows
-set.seed(42)
-rows <- sample(nrow(status2))
-status2 <- status2[rows, ]
-# now add study_id, formatted as "00X"
-status2$study_id <- str_pad(1L:799L, width = 5,
-                            side = "left", pad = "0")
-status2 <- status2 %>% relocate(study_id)
-status2
 
 # set plotting constants -----
-v_space_const = 8 # set adjustment between vertical boxes
+v_space_const = 6 # set adjustment between vertical boxes
 h_space_const = 6 # set adjustment between horizontal boxes
 h_const = 6 # set adjustment for box height by # of lines
 w_const = 3.5 # set adjustment for box width by # of characters
 
+# set status_table
+status_table <- status2
+
 # detect number of arms
-n_arms <- status2 %>%
+n_arms <- status_table %>%
           filter(!is.na(arm)) %>%
           distinct(arm) %>%
           nrow()
@@ -64,7 +34,7 @@ top_tbl <- tibble(box, box_num, label, lines, char_wide)
 
 # set up for exclusion box row ----
 # build text for exclusion box label
-status2 %>%
+status_table %>%
   filter(is.na(randomized)) %>%
   tabyl(excluded_reason) %>%
   adorn_totals("row") %>%
@@ -89,11 +59,11 @@ label_ex <- glue_collapse(exclusion_table2$col_new) %>% #collapses to single str
 
 # fill in text labels for boxes 10-30 ---
 # assessment label
-top_tbl$label[1] <- glue(status2 %>% tally() %>% pull(), " Patients Assessed for Eligibility")
+top_tbl$label[1] <- glue(status_table %>% tally() %>% pull(), " Patients Assessed for Eligibility")
 # excluded label
 top_tbl$label[2] <- label_ex # created above
 # randomized label
-top_tbl$label[3] <- glue(status2 %>% filter(randomized == "Yes") %>% tally() %>% pull(), " Patients randomly assigned\nand included in the intention-to-treat analysis")
+top_tbl$label[3] <- glue(status_table %>% filter(randomized == "Yes") %>% tally() %>% pull(), " Patients randomly assigned\nand included in the intention-to-treat analysis")
 
 # calculate true # of lines for all 3 ----
 top_tbl$lines <- count_lines(top_tbl$label)

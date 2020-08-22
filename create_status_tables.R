@@ -6,11 +6,11 @@ library(tidyverse)
 # Elmunzer, Higgins, et al.
 ## build status2 ----
 status2 <- tibble(randomized = c(rep("Yes", 602),
-                                 rep("No", 197)),
+                                 rep(NA, 197)),
                   excluded_reason = c(rep(NA, 602), #must match randomized = Yes
-                                      rep("Did not meet inclusion criteria", 169),
-                                      rep("Met Exclusion Criteria", 11),
-                                      rep("Did not Undergo ERCP", 17)),
+          rep("Did not meet inclusion criteria", 169),
+          rep("Met Exclusion Criteria", 11),
+         rep("Did not Undergo ERCP", 17)),
                   arm = c(rep("Placebo", 307),
                           rep("Indomethacin", 295),
                   rep(NA, 197) # must match randomized = No

@@ -48,8 +48,11 @@ class: top, left
 # An Artisanal Product
 
 - CONSORT diagrams are now commonly used, but the template provided does not provide an underlying data structure, or best practices for building a diagram. 
-- The CONSORT diagram has become an artisanal product, built by counting categories and copy/pasting results into templates. 
+
+- The CONSORT diagram has become an artisanal product, built by counting categories and copy/pasting results into templates.
+
 - This leads to frequent errors in which the participant numbers don't add up. 
+
 - Most CONSORT diagrams are built from templates in MS Word, Powerpoint, or Adobe Illustrator.
 
 ---
@@ -65,12 +68,17 @@ class: top, left
 ## draw_consort(status_table)
 
 - any # of arms from 2 to 8 (or more)
-- auto-wraps text in boxes with _str_wrap()_
+
 - can control text wrap with `\n`
+
 - fits boxes to height, width of text
+
 - creates lines and arrows to box center edges
+
 - sets standard vertical and horizontal spacing between boxes, lines
+
 - creates plot area sufficient to contain diagram
+
 - then draws the diagram
 
 
@@ -79,9 +87,11 @@ class: top, left
 # Under the Hood
 
 - requires a standardized status_table as input
+
 - counts number of participants in each box/arm
 - creates text for each box in a box_table
 - calculates height, width, center of boxes in box_table
+
 - calculates position of each box in box_table
 - calculates start, end of each line (one without arrowhead)
 
@@ -107,9 +117,10 @@ class: top, left
 class: top, left
 # Requirements of a Status Table
 - One row per candidate participant
-- includes both
+- Includes both
   + randomized participants, and
   + candidate participants excluded (aka screen failures)
+  <br>
   <br>
 - (optional) column - studyid
 - column `randomized` - yes or NA
@@ -136,10 +147,15 @@ knitr::include_graphics("hex-ggconsort.png")
 
 ---
 class:top, left
-# Feedback and Collaborators Wanted!
+# Feedback and Help (Collaborators) Wanted!
 ## Goals
-- More (and better) vignettes
+- tests 
+  + actual software engineering by people who know what they are doing
+- Vignettes
 - A better README
-- Helper functions to take standard data formats (tidycdisc?) and make a status_table
-- more options, arguments - currently like the model T.
-- You can have any font or spacing that you want, as long as it is the default.
+- Helper functions to take standard data formats and produce a status_table
+  + tidycdisc?
+  + ADaMs?
+
+- More options, arguments - currently like the Model T.
+  + You can have any font or spacing that you want, as long as it is the default.

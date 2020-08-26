@@ -95,16 +95,6 @@ class: top, left
 ---
 
 class: top, left
-# Demo for 3 arms
-
----
-
-class: top, left
-# Demo for 4 arms
-
----
-
-class: top, left
 # Demo for 5 arms
 
 ---
@@ -118,15 +108,16 @@ class: top, left
 # Requirements of a Status Table
 - One row per candidate participant
 - includes both
-- randomized participants
-- and candidate participants excluded (aka screen failures)
+  + randomized participants, and
+  + candidate participants excluded (aka screen failures)
+  <br>
 - (optional) column - studyid
-- column `randomized` - Yes or NA
+- column `randomized` - yes or NA
 - column `excluded_reason` - Text or NA
 - column `arm` - Text per Arm or NA
-- column `completed` - Yes or NA
+- column `completed` - yes or NA
 - column `discontinued_reason` - Text or NA
-- column `analyzed` -  Yes or NA
+- column `analyzed` -  yes or NA
 - column `not_analyzed_reason` - Text or NA
 ---
 class:top, left

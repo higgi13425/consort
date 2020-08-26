@@ -18,6 +18,7 @@ options(htmltools.dir.version = FALSE)
 library(xaringan)
 library(xaringanthemer)
 library(tidyverse)
+source('create_status_tables.R')
 ```
 
 ```{r xaringan-themer, include=FALSE, warning=FALSE}
@@ -78,7 +79,8 @@ class: header_background
   + MS Word
   + Powerpoint, or 
   + Adobe Illustrator.
-
+- Note: there is a way to do this in SAS, with PROC SGPLOT
+https://www.sas.com/content/dam/SAS/support/en/sas-global-forum-proceedings/2019/3149-2019.pdf
 ---
 
 class: header_background
@@ -96,12 +98,17 @@ class: header_background
 ## draw_consort(status_table)
 
 - any # of arms from 2 to 8 (or more)
-- auto-wraps text in boxes with _str_wrap()_
+
 - can control text wrap with `\n`
+
 - fits boxes to height, width of text
+
 - creates lines and arrows to box center edges
+
 - sets standard vertical and horizontal spacing between boxes, lines
+
 - creates plot area sufficient to contain diagram
+
 - then draws the diagram
 
 
@@ -111,11 +118,17 @@ class: header_background
 # Under the Hood
 
 - Requires a standardized status_table as input
+
 - Counts the number of participants in each box/arm
+
 - Creates text for each box in a box_table
+
 - Calculates height, width, center of boxes in box_table
+
 - Calculates position of each box in box_table
-- Calculates start, end of each line (one without arrowhead)
+
+- Calculates start, end of each line 
+
 - {ggplot2} draws the elements in box_table
 
 ---
@@ -127,6 +140,11 @@ class: header_background
 ---
 
 class: header_background
+
+# Demo for 5 arms
+
+---
+class: header_background
 # Demo for 8 arms
 
 ---
@@ -135,15 +153,15 @@ class: header_background
 # Requirements of a Status Table
 - One row per candidate participant
 - Includes both: 
-  + randomized participants
-  + and candidate participants excluded (aka screen failures)
+  + randomized participants, and
+  + candidate participants excluded (aka screen failures)
   
 - (optional) column - studyid
 - column `randomized` -             Yes or NA
 - column `exc_reason` -             Text or NA
 - column `arm` -                    Text per Arm or NA
-- column `recieved_med` -           Yes or NA
-- column `dnr_reason` -             Text or NA
+- column `recieved_int` -           Yes or NA
+- column `dnr_int_reason` -         Text or NA
 - column `completed` -              Yes or NA
 - column `discontinued_reason` -    Text or NA
 - column `analyzed` -               Yes or NA
@@ -152,9 +170,9 @@ class: header_background
 ---
 
 class: header_background
-# Example of a Status Table
+# Glimpse of a Status Table
 ```{r, echo=FALSE, out.width="100%", fig.align='center'}
-knitr::include_graphics("status_table.png")
+glimpse(status2)
 ```
 
 ---
@@ -178,15 +196,17 @@ knitr::include_graphics("hex-ggconsort.png")
 
 ---
 class: header_background
-# Collaborators Wanted!
+# Help (Collaborators) Needed!
 ## Goals
-- A better README
-- More (and better) vignettes
-- An improved {pkgdown} site
+- Tests, especially on status_table input
+  + e.g. Actual software dev by someone who knows what they are doing
 - Helper functions to take standard data formats and make a status_table from:
   + CDISC data format
   + tidycdisc data format?
   + ADaM data format
+- Vignettes
+- An useful {pkgdown} site
+- ability to work with data in the wild (1/0, "No"/Yes", "Completed")
 - More options, customization - currently like the original Model T.
   + You can have any font or spacing that you want, as long as it is the default.
 

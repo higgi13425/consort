@@ -1,3 +1,5 @@
+library(tidyverse)
+library(glue)
 
 max_char_width <- function(string) { # depends on tidyverse
   str_split(string, "\n") %>%
@@ -23,10 +25,29 @@ collapse_to_string <- function(column) { # depends on glue
 
 
 count_lines <- function(string) {
-  str_count(string, "\n") +1
+  str_count(string, "\n") + 1
 }
 # possible unit tests
 # input string with multiple newlines
 # input string with single line
 # non-existent input string (useful error message)
 
+
+make_nbox_tibble <- function(n_arms) {
+  # detect <1
+  n_arms <- as.integer(n_arms)
+  if (n_arms<1) {
+    print("the number of arms must be an integer greater than zero")
+  } else if((n_arms %% 2) == 0){
+    # even case
+    box_num <- -(n_arms/2):(n_arms/2)
+    box_num <- box_num[box_num != 0]
+    box_num
+  } else{
+    # odd case
+    box_num <- -(trunc(n_arms/2)):(trunc(n_arms/2))
+    box_num
+  }
+  box_list <- tibble(box_num)
+  return(box_list)
+}

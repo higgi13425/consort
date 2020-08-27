@@ -83,7 +83,7 @@ p2
 
 # The first box is the number of patients assessed for eligibility.
 # assessed_box
-assessed_box <- glue(status %>% tally() %>% pull(), " Patients Assessed for Eligibility")
+assessed_box <- glue(status5 %>% tally() %>% pull(), " Patients Assessed for Eligibility")
 
 assessed_box
 
@@ -98,7 +98,7 @@ p2
 # exclusion_box
 
 status %>%
-  filter(randomized == "No") %>%
+  filter(is.na(randomized)) %>%
   tabyl(excluded_reason) %>%
   adorn_totals("row") %>%
   select(n, excluded_reason) %>%
@@ -117,7 +117,7 @@ exclusion_box
 ### Now let's build the text for the assignment box
 # assign_box
 status %>%
-  filter(randomized == "Yes") %>%
+  filter(randomized == "yes") %>%
   tally() %>%
   pull() ->
   num_assigned
@@ -158,27 +158,56 @@ status %>%
 
 ### Now let's try to build the text for boxes for reasons discontinued by arm
 
+arms_vec <- list_arms(status)
 
 status %>%
-  filter(randomized == "Yes") %>%
-  filter(completed != "Completed") %>%
-  select(study_id, arm, completed) %>%
+  filter(randomized == "yes") %>%
+  filter(is.na(completed)) %>%
+  select(study_id, arm, completed, discont_reason) %>%
   arrange(arm, completed) ->
   discontinued_table
 discontinued_table
 
-# build a function, run across arms with purrr
-# example for one group
-discontinued_table %>%
-  filter(arm == "Placebo") %>%
-  tabyl(completed) %>%
-  adorn_totals("row") %>%
-  arrange(desc(n)) ->
-  discontinued_group
-discontinued_group[1,1] <- "Discontinued"
+# use build_discont_text function, run across arms_vec with purrr
 
-mutate(discontinued_group, col_new = paste(n, completed))%>%
-  select(col_new)
+purrr::map_dfr(.f = build_discont_text, .x = arms_vec)
+
+output = NULL
+for (i in arms_vec)
+{
+  discontinued_table %>%
+    filter(arm == i) %>%
+    tabyl(discont_reason) %>%
+    adorn_totals("row") %>%
+    arrange(desc(n)) ->
+    discontinued_group
+  discontinued_group[1,1] <- "Discontinued"
+
+  mutate(discontinued_group,
+         discont_label = paste(n, discont_reason))%>%
+    select(discont_label) %>%
+    glue_data("{discont_label}") -> out
+  output = bind_rows(output, out)
+}
+
+output = NULL
+for (i in arms_vec)
+  {
+  discontinued_table %>%
+    filter(arm == i) %>%
+    tabyl(discont_reason) %>%
+    adorn_totals("row") %>%
+    arrange(desc(n)) ->
+    discontinued_group
+  discontinued_group[1,1] <- "Discontinued"
+  mutate(discontinued_group,
+         discont_label = paste(n, discont_reason))%>%
+    select(discont_label) %>%
+    collapse_to_string() %>%
+    print()
+} %>%
+  tibble() ->
+  discont
 
 ### Now let's build the text for the completion boxes for each arm
 
@@ -556,15 +585,15 @@ ends = "last", type = "closed"), arrow.fill = "black")
 
 ## build arms_boxes_tbl
 # start with assignment boxes, group 4
-# set which status table (will later be argument)
+# set which status table (will later be an argument)
 status <- status5
 
-## count arms
+## count arms (could be a function)
 n_arms <- status %>%
   filter(!is.na(arm)) %>%
   distinct(arm) %>%
   count() %>% pull()
-n_arms
+n_arms #display result
 
 ##
 box_num <- 1:n_arms
@@ -574,6 +603,7 @@ loc_num <- dplyr::case_when(
   n_arms %% 2 == 0 & box_num > n_arms/2 ~ box_num-n_arms/2,
   n_arms %% 2 == 0 & box_num <= n_arms/2 ~ box_num-n_arms/2-1,
   n_arms %% 2 != 0 ~ box_num - ceiling(n_arms/2))
+# note have a function for the above
 box_num <- box_num + group*10
 label <- status %>%
   filter(!is.na(arm)) %>%
@@ -599,6 +629,71 @@ label <- status %>%
   select(study_id, arm, completed) %>%
   arrange(arm, completed)
 
+# build discont labels
+arms_vec <- list_arms(status)
+
+
+status %>%
+  filter(randomized == "yes") %>%
+  filter(is.na(completed)) %>%
+  filter(arm == arms_vec[i]) %>%
+  tabyl(discont_reason) %>%
+  adorn_totals("row") %>%
+  arrange(desc(n)) ->
+  discont_table
+discont_table
+
+discont_table[1,1] <- "Discontinued"
+
+discont_table2 <- discont_table %>%
+  mutate(col_new = paste0(n, " ",discont_reason, "\n")) %>%
+  select(col_new)
+
+# measure max_length of string in col_new
+discont_char_wide <- max(nchar(discont_table2$col_new)) - 2
+# later will put this width into top_boxes_tbl row 2
+
+# glue into single string with line breaks
+label_discont <- glue_collapse(discont_table2$col_new) %>%
+  tibble()
+label_discont
+
+
+
+# with loop
+discont_labels = list()
+
+for(i in seq_along(arms_vec)){
+  status %>%
+    filter(randomized == "yes") %>%
+    filter(is.na(completed)) %>%
+    filter(arm == arms_vec[i]) %>%
+    tabyl(discont_reason) %>%
+    adorn_totals("row") %>%
+    arrange(desc(n)) ->
+    discont_table
+  discont_table
+
+  discont_table[1,1] <- "Discontinued"
+
+  discont_table2 <- discont_table %>%
+    mutate(col_new = paste0(n, " ",discont_reason, "\n")) %>%
+    select(col_new)
+
+  # measure max_length of string in col_new
+  discont_char_wide <- max(nchar(discont_table2$col_new)) - 2
+  # later will put this width into top_boxes_tbl row 2
+
+  # glue into single string with line breaks
+  discont_labels[i] <- glue_collapse(discont_table2$col_new)
+}
+label_discont <- bind_rows(discont_labels)
+
+#collapses to single string
+  #str_trim() #removes the last \n
+# later will put into top_boxes_tbl$label[2]
+
+# build tibble
 discont_boxes <-  tibble(box_num, group, name, loc_num)
 
 ## add completed boxes, group 6
@@ -628,7 +723,11 @@ arms_boxes_tbl <- bind_rows(assign_boxes,
 
 ## build arms_lines_tbl
 # start with short vertical assignment lines, group 5
-n_arms = 9
+n_arms <- status %>%
+  filter(!is.na(arm)) %>%
+  distinct(arm) %>%
+  count() %>% pull()
+
 line_num <- 1:n_arms
 group = 5
 name <- paste0("assign_ln_", {group}, {line_num})

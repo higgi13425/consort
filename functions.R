@@ -51,3 +51,26 @@ make_nbox_tibble <- function(n_arms) {
   box_list <- tibble(box_num)
   return(box_list)
 }
+
+list_arms <- function(status_table) {
+  status_table %>%
+    filter(!is.na(arm)) %>%
+    distinct(arm) %>%
+    pull()
+}
+
+build_discont_text <- function(discontinued_table, selected_arm) {
+  discontinued_table %>%
+    filter(arm == !!!enquos(selected_arm)) %>%
+    tabyl(discont_reason) %>%
+    adorn_totals("row") %>%
+    arrange(desc(n)) ->
+    discontinued_group
+  discontinued_group[1,1] <- "Discontinued"
+
+  mutate(discontinued_group,
+         discont_label = paste(n, discont_reason))%>%
+    select(discont_label) %>%
+    glue_data("{discont_label}") -> output
+  return(output)
+}

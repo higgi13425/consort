@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>{ggconsort} - building programmatic CONSORT diagrams in ggplot</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Peter DR Higgins" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# {ggconsort} - building programmatic CONSORT diagrams in ggplot
+### Peter DR Higgins
+### University of Michigan
+### 2020/08/27
+
+---
+
+
+
+
+
+class: header_background, center
+# {ggconsort}
+
+
+&lt;img src="images/hex-ggconsort.png" width="57%" /&gt;
+
+---
+
+class: header_background
+
+# CONSORT diagrams
+
+### To promote transparency
+
+In clinical trials, a CONSORT diagram shows the flow of participants from screening to analysis, while identifying and providing reasons for dropout or exclusion of participants at each step along the way.
+![image](images/consort5arm_upa_uc.png)
+
+---
+
+class: header_background
+
+# CONSORT diagrams
+
+### Endorsed by most medical journals
+.pull-left[
+CONSORT = Consolidated Standards of Reporting Trials, developed by the CONSORT group, &lt;http://www.consort-statement.org&gt;, which started in 1993 to improve the quality of reporting of clinical trials.
+]
+.pull-right[
+![image](images/CONSORT_template.png)
+]
+---
+
+class: header_background
+
+# An Artisanal Product
+
+- CONSORT diagrams are now commonly used to report RCTs,&lt;br&gt;
+  but the template provided does not provide: 
+  + An underlying data structure, or 
+  + Best practices for building a diagram. 
+- The CONSORT diagram has become an artisanal product
+  + Usually built by counting categories and 
+  + Copy/pasting results into templates. 
+- This leads to frequent errors in which the participant numbers don't add up. 
+- Most CONSORT diagrams are built from templates in 
+  + MS Word
+  + Powerpoint, or 
+  + Adobe Illustrator.
+- Note: there is a way to do this in SAS, with PROC SGPLOT
+https://www.sas.com/content/dam/SAS/support/en/sas-global-forum-proceedings/2019/3149-2019.pdf
+---
+
+class: header_background
+
+# Naming Diagram Components
+### insert marked up image here
+- note top has N = 1 of each
+- note bottom has N = n_arms of each
+
+---
+
+class: header_background
+
+# Built in Data - status_tables
+- examples from actual clinical trials, numbered by # of arms
+
+  + status2 -  (Indomethacin vs Placebo)
+  + status3 -  (Aza vs IFX vs Aza/IFX combo)
+  + status4 -  (Placebo vs 5,10,15 mg tofacitinib)
+  + status5 - (Placebo vs 4 doses of upadacitinib)
+  + status8 -  (8 interventions to increase uptake of flu vaccine)
+---
+
+class: header_background
+
+# {ggconsort} One Function
+
+## draw_consort(status_table)
+
+- any # of arms from 2 to 8 (or more)
+
+- can control text wrap with `\n`
+
+- fits boxes to height, width of text
+
+- creates lines and arrows to box center edges
+
+- sets standard vertical and horizontal spacing between boxes, lines
+
+- creates plot area sufficient to contain diagram
+
+- then draws the diagram
+
+
+---
+
+class: header_background
+# Under the Hood
+
+- Requires a standardized status_table as input
+
+- Counts the number of participants in each box/arm
+
+- Creates text for each box in a box_table
+
+- Calculates height, width, center of boxes in box_table
+
+- Calculates position of each box in box_table
+
+- Calculates start, end of each line 
+
+- {ggplot2} draws the elements in box_table
+
+---
+
+class: header_background
+
+# Demo for 2 arms
+
+---
+
+class: header_background
+
+# Demo for 5 arms
+
+---
+class: header_background
+# Demo for 8 arms
+
+---
+
+class: header_background
+# Requirements of a Status Table
+- One row per candidate participant
+- Includes both: 
+  + randomized participants, and
+  + candidate participants excluded (aka screen failures)
+  
+- (optional) column - studyid
+- column `randomized` -             Yes or NA
+- column `exc_reason` -             Text or NA
+- column `arm` -                    Text per Arm or NA
+- column `recieved_int` -           Yes or NA
+- column `dnr_int_reason` -         Text or NA
+- column `completed` -              Yes or NA
+- column `discontinued_reason` -    Text or NA
+- column `analyzed` -               Yes or NA
+- column `not_an_reason` -          Text or NA
+
+---
+
+class: header_background
+# Glimpse of a Status Table
+
+```
+## Rows: 799
+## Columns: 10
+## $ study_id        &lt;chr&gt; "00001", "00002", "00003", "00004…
+## $ randomized      &lt;chr&gt; "yes", "yes", "yes", "yes", "yes"…
+## $ excluded_reason &lt;chr&gt; NA, NA, NA, NA, NA, NA, "Did not …
+## $ arm             &lt;chr&gt; "Indomethacin", "Indomethacin", "…
+## $ recieved_int    &lt;chr&gt; "yes", "yes", "yes", "yes", "yes"…
+## $ dnr_int_reason  &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, N…
+## $ completed       &lt;chr&gt; "yes", "yes", "yes", "yes", "yes"…
+## $ discont_reason  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, N…
+## $ analyzed        &lt;chr&gt; "yes", "yes", "yes", "yes", "yes"…
+## $ not_an_reason   &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA, N…
+```
+
+---
+class: header_background
+# The Package and Repository
+.center[
+https://github.com/higgi13425/ggconsort
+]
+
+&lt;img src="images/github-ggconsort.png" width="80%" style="display: block; margin: auto;" /&gt;
+---
+class: header_background
+# The Hex Sticker
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="images/hex-ggconsort.png" alt="Because one must always have a hex sticker" width="53%" /&gt;
+&lt;p class="caption"&gt;Because one must always have a hex sticker&lt;/p&gt;
+&lt;/div&gt;
+
+
+---
+class: header_background
+# Help (Collaborators) Needed!
+- This is just a proof of concept, not a proper package.
+### Goals
+- Tests, especially on status_table input
+  + e.g. Actual software dev by people who know what they are doing
+- Helper functions to take standard data formats and make a status_table from:
+  + CDISC data format?
+  + tidycdisc data format?
+  + ADaM data format?
+- See if this works outside of MacOS/RStudio Graphics Device?
+- Ability to work with data in the wild (1/0, "No"/Yes", "Completed")
+  + Not just carefully curated data
+- Useful vignettes
+- A proper package (roxygen2) and a useful {pkgdown} site
+- More options, customization - currently like the original Model T.
+  + You can have any font or spacing that you want, as long as it is the default.
+
+---
+class: inverse, center, middle
+
+# Thanks!
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -34,7 +34,7 @@ class: header_background, center
 
 
 ```{r, echo=FALSE, out.width="57%"}
-knitr::include_graphics("hex-ggconsort.png")
+knitr::include_graphics("images/hex-ggconsort.png")
 ```
 
 ---
@@ -46,7 +46,7 @@ class: header_background
 ### To promote transparency
 
 In clinical trials, a CONSORT diagram shows the flow of participants from screening to analysis, while identifying and providing reasons for dropout or exclusion of participants at each step along the way.
-![image](consort5arm_upa_uc.png)
+![image](images/consort5arm_upa_uc.png)
 
 ---
 
@@ -59,7 +59,7 @@ class: header_background
 CONSORT = Consolidated Standards of Reporting Trials, developed by the CONSORT group, <http://www.consort-statement.org>, which started in 1993 to improve the quality of reporting of clinical trials.
 ]
 .pull-right[
-![image](CONSORT_template.png)
+![image](images/CONSORT_template.png)
 ]
 ---
 
@@ -89,11 +89,24 @@ class: header_background
 ### insert marked up image here
 - note top has N = 1 of each
 - note bottom has N = n_arms of each
+
 ---
 
 class: header_background
 
-# {ggconsort} Basic Functionality
+# Built in Data - status_tables
+- examples from actual clinical trials, numbered by # of arms
+
+  + status2 -  (Indomethacin vs Placebo)
+  + status3 -  (Aza vs IFX vs Aza/IFX combo)
+  + status4 -  (Placebo vs 5,10,15 mg tofacitinib)
+  + status5 - (Placebo vs 4 doses of upadacitinib)
+  + status8 -  (8 interventions to increase uptake of flu vaccine)
+---
+
+class: header_background
+
+# {ggconsort} One Function
 
 ## draw_consort(status_table)
 
@@ -171,7 +184,7 @@ class: header_background
 
 class: header_background
 # Glimpse of a Status Table
-```{r, echo=FALSE, out.width="100%", fig.align='center'}
+```{r, echo=FALSE}
 glimpse(status2)
 ```
 
@@ -183,30 +196,33 @@ https://github.com/higgi13425/ggconsort
 ]
 
 ```{r, echo=FALSE, out.width="80%", fig.align='center'}
-knitr::include_graphics("github-ggconsort.png")
+knitr::include_graphics("images/github-ggconsort.png")
 ```
 ---
 class: header_background
 # The Hex Sticker
 
 ```{r, echo=FALSE, out.width="53%", fig.cap="Because one must always have a hex sticker", fig.align='center'}
-knitr::include_graphics("hex-ggconsort.png")
+knitr::include_graphics("images/hex-ggconsort.png")
 ```
 
 
 ---
 class: header_background
 # Help (Collaborators) Needed!
-## Goals
+- This is just a proof of concept, not a proper package.
+### Goals
 - Tests, especially on status_table input
-  + e.g. Actual software dev by someone who knows what they are doing
+  + e.g. Actual software dev by people who know what they are doing
 - Helper functions to take standard data formats and make a status_table from:
-  + CDISC data format
+  + CDISC data format?
   + tidycdisc data format?
-  + ADaM data format
-- Vignettes
-- An useful {pkgdown} site
-- ability to work with data in the wild (1/0, "No"/Yes", "Completed")
+  + ADaM data format?
+- See if this works outside of MacOS/RStudio Graphics Device?
+- Ability to work with data in the wild (1/0, "No"/Yes", "Completed")
+  + Not just carefully curated data
+- Useful vignettes
+- A proper package (roxygen2) and a useful {pkgdown} site
 - More options, customization - currently like the original Model T.
   + You can have any font or spacing that you want, as long as it is the default.
 

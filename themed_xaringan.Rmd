@@ -274,8 +274,7 @@ class: header_background
   + e.g. Actual software dev by people who know what they are doing
 - Can this work across Graphics Devices (not just MacOS/RStudio)?
 - Helper functions to take standard data formats and make a status_table from:
-  + CDISC data format?
-  + tidycdisc data format?
+  + SDTM data format?
   + ADaM data format?
 - Ability to work with data in the wild (1/0, "No"/Yes", "Completed")
   + Not just carefully curated data

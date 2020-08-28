@@ -1,5 +1,3 @@
-library(tidyverse)
-library(glue)
 
 max_char_width <- function(string) { # depends on tidyverse
   str_split(string, "\n") %>%
@@ -59,6 +57,7 @@ list_arms <- function(status_table) {
     pull()
 }
 
+# this one needs fixing - purrr::map across vector of arms
 build_discont_text <- function(discontinued_table, selected_arm) {
   discontinued_table %>%
     filter(arm == !!!enquos(selected_arm)) %>%
